@@ -7,8 +7,7 @@ enum class LoadingMode {
     NON_CANCELABLE,
     WITH_PROGRESS,
     CONCURRENT_WITH_PROGRESS,
-    UNSTABLE_NETWORK,
-    UNSTABLE_WITH_RETRY;
+    UNSTABLE_NETWORK;
 
     val title get(): String =
         name.replace('_', ' ')

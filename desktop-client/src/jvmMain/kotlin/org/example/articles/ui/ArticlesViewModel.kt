@@ -108,11 +108,6 @@ class ArticlesViewModel(
                     val articles = observeArticlesUnstable(service)
                     updateResultsWithProgress(articles, startTime)
                 }
-
-                UNSTABLE_WITH_RETRY -> {
-                    val articles = observeArticlesUnstableWithRetry(service)
-                    updateResultsWithProgress(articles, startTime)
-                }
             }
         }
     }
