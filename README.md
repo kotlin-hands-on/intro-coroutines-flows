@@ -1,6 +1,7 @@
 # Coroutines Tutorial: Articles App
 
-A standalone exercise built around the "Articles" app extracted from the Coroutines Workshop.
+A standalone, hands-on exercise for learning Kotlin coroutines by building the backend and UI for
+a small "Articles" app.
 
 Run the `Articles` run configuration (or `desktop-client`'s `jvmRun` Gradle task) to launch the app.
 On startup it automatically starts the backend server; once it's ready, click "Open Articles" to

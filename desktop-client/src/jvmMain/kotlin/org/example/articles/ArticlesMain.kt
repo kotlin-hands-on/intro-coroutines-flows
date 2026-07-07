@@ -31,7 +31,7 @@ fun main() = application {
             launcherState.shutdown()
             exitApplication()
         },
-        title = "Coroutines Workshop: Articles",
+        title = "Articles",
         state = rememberWindowState(
             position = WindowPosition(Alignment.Center),
             width = 480.dp,

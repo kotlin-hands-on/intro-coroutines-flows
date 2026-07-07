@@ -118,7 +118,7 @@ sealed interface ServerStatus {
 
     data object Starting : ServerStatus {
         override val canLaunchClients = false
-        override fun message(elapsedSeconds: Long) = "Starting workshop server..."
+        override fun message(elapsedSeconds: Long) = "Starting server..."
     }
 
     data class Running(val startedAtMillis: Long) : ServerStatus {
