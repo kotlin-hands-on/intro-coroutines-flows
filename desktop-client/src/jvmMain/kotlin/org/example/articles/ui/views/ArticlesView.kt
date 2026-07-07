@@ -1,0 +1,124 @@
+package org.example.articles.ui.views
+
+import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import org.example.articles.model.Article
+import org.example.articles.ui.ArticlesViewModel
+import org.example.blog.User
+
+@Composable
+fun ArticlesView(viewModel: ArticlesViewModel) {
+    Column {
+        Box(Modifier.padding(top = 10.dp).size(32.dp).align(Alignment.CenterHorizontally)) {
+            RotatingEmoji()
+        }
+        LoadingControls(
+            modifier = Modifier,
+            loadingMode = viewModel.loadingMode,
+            updateLoadingMode = viewModel::changeLoadingMode,
+            startLoading = viewModel::loadComments,
+            newLoadingEnabled = viewModel.newLoadingEnabled,
+            cancelLoading = viewModel::cancelLoading,
+            cancellationEnabled = viewModel.cancellationEnabled
+        )
+        val articles = viewModel.articlesFlow.collectAsState(listOf()).value
+        LoadingStatus(
+            articlesNumber = articles.size,
+            loadingStatus = viewModel.loadingStatus,
+            currentLoadingTimeMillis = viewModel.currentLoadingTimeMillis,
+        )
+//        ActiveUsersView(
+//            activeUsers = viewModel.activeUsers.collectAsState(setOf()).value
+//        )
+        ArticlesView(
+            articles = articles,
+        )
+    }
+}
+
+@Composable
+fun ActiveUsersView(activeUsers: Set<User>) {
+    val text = if (activeUsers.isNotEmpty()) {
+        "Active users: " + activeUsers.joinToString { it.name }
+    }
+    else ""
+    Text(text)
+}
+
+@Composable
+fun ArticlesView(
+    articles: List<Article>
+) {
+    Box(modifier = Modifier.fillMaxHeight()) {
+        val scrollState = rememberScrollState()
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(scrollState)
+        ) {
+            ThreeColumn("Author", "Title", "# comments", FontWeight.ExtraBold)
+            for (article in articles) {
+                Spacer(modifier = Modifier.height(10.dp))
+                ArticleView(article)
+            }
+        }
+        VerticalScrollbar(
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(scrollState)
+        )
+    }
+}
+
+@Composable
+fun ThreeColumn(first: String, second: String, third: String, fontWeight: FontWeight = FontWeight.Normal) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = Color(0, 0, 0, 20))
+            .padding(5.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth(0.2f).padding(start = 20.dp),
+        ) {
+            Text(
+                text = first,
+                fontWeight = fontWeight
+            )
+        }
+        Box(
+            modifier = Modifier.fillMaxWidth(0.8f),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = second,
+                fontWeight = fontWeight
+            )
+        }
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                modifier = Modifier.fillMaxSize(),
+                text = third,
+                fontWeight = fontWeight
+            )
+        }
+    }
+}
+
+@Composable
+fun ArticleView(article: Article) {
+    ThreeColumn(article.author.name, article.info.title, "${article.comments.size} comments")
+}
+

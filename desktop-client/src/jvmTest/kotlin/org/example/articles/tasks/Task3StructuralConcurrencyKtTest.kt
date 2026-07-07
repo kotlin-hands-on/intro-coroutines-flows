@@ -1,0 +1,35 @@
+package org.example.articles.tasks
+
+import org.example.articles.data.ArticlesFakeDataResults
+import org.example.articles.data.MockBlogService
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.currentTime
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.seconds
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class Task3StructuralConcurrencyKtTest {
+    @Test
+    fun `test loadArticlesNonCancelable Result`() = runTest {
+        val result = loadArticlesNonCancelable(MockBlogService)
+        assertEquals(
+            expected = ArticlesFakeDataResults.expectedConcurrentList.list,
+            actual = result,
+            message = "Wrong result for 'loadArticlesNonCancelable'"
+        )
+    }
+
+    @Test
+    fun `test loadArticlesConcurrently Cancellation`() = runTest {
+        val job = launch {
+            loadArticlesConcurrently(MockBlogService)
+        }
+        delay(1.seconds)
+        job.cancel()
+        // TODO Test that the articles loading was cancelled?
+    }
+}
