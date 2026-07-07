@@ -1,5 +1,6 @@
 package org.example.articles
 
+import org.example.WorkshopServer
 import org.example.WorkshopServerConfig.WORKSHOP_SERVER_URL
 import org.example.createWorkshopServer
 import io.ktor.client.HttpClient
@@ -12,20 +13,24 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 class ServerController {
-    private var server = createWorkshopServer()
+    private var server: WorkshopServer? = null
 
     suspend fun start() {
+        stop()
+        val newServer = createWorkshopServer()
+        server = newServer
         withContext(Dispatchers.IO) {
-            server.start(wait = false)
+            newServer.start(wait = false)
         }
         waitUntilReady()
     }
 
     fun stop() {
         try {
-            server.stop()
+            server?.stop()
         } catch (_: Exception) {
         }
+        server = null
     }
 
     private suspend fun waitUntilReady() {

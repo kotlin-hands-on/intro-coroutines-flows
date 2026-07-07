@@ -5,67 +5,60 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 fun main() = application {
-    val launcherState = remember { ArticlesLauncherState(ServerController()) }
+    val appState = remember { ArticlesAppState(ServerController()) }
+    val scope = rememberCoroutineScope()
 
-    LaunchedEffect(launcherState) {
-        launcherState.startServer()
+    LaunchedEffect(appState) {
+        appState.startServer()
     }
-    DisposableEffect(launcherState) {
+    DisposableEffect(appState) {
         onDispose {
-            launcherState.shutdown()
+            appState.shutdown()
         }
     }
 
     Window(
         onCloseRequest = {
-            launcherState.shutdown()
+            appState.shutdown()
             exitApplication()
         },
         title = "Articles",
-        state = rememberWindowState(
-            position = WindowPosition(Alignment.Center),
-            width = 480.dp,
-            height = 180.dp,
-        ),
+        state = rememberWindowState(width = 760.dp, height = 760.dp),
     ) {
-        ArticlesLauncherApp(
-            serverStatus = launcherState.serverStatus,
-            onOpenArticles = launcherState::openArticlesWindow,
-        )
-    }
-
-    if (launcherState.isArticlesWindowOpen) {
-        ArticlesWindow(
-            onCloseRequest = launcherState::closeArticlesWindow,
-            verifyServerOnLaunch = false,
+        ArticlesApp(
+            serverStatus = appState.serverStatus,
+            onRetryServerStart = { scope.launch { appState.startServer() } },
         )
     }
 }
 
-private class ArticlesLauncherState(
+sealed interface ServerStatus {
+    data object Starting : ServerStatus
+    data object Running : ServerStatus
+    data class Failed(val error: String) : ServerStatus
+}
+
+private class ArticlesAppState(
     private val serverController: ServerController,
 ) {
     var serverStatus by mutableStateOf<ServerStatus>(ServerStatus.Starting)
-        private set
-
-    var isArticlesWindowOpen by mutableStateOf(false)
         private set
 
     suspend fun startServer() {
         serverStatus = ServerStatus.Starting
         serverStatus = try {
             serverController.start()
-            ServerStatus.Running(startedAtMillis = System.currentTimeMillis())
+            ServerStatus.Running
         } catch (exception: CancellationException) {
             throw exception
         } catch (throwable: Throwable) {
@@ -75,15 +68,5 @@ private class ArticlesLauncherState(
 
     fun shutdown() {
         serverController.stop()
-    }
-
-    fun openArticlesWindow() {
-        if (serverStatus.canLaunchClients) {
-            isArticlesWindowOpen = true
-        }
-    }
-
-    fun closeArticlesWindow() {
-        isArticlesWindowOpen = false
     }
 }
