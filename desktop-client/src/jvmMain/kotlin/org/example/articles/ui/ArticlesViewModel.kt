@@ -39,7 +39,7 @@ class ArticlesViewModel(
         this.loadingMode = loadingMode
     }
 
-    enum class LoadingStatus { NOT_STARTED, IN_PROGRESS, COMPLETED, CANCELED, FAILED }
+    enum class LoadingStatus { NOT_STARTED, IN_PROGRESS, COMPLETED, CANCELLED, FAILED }
 
     var loadingStatus by mutableStateOf(NOT_STARTED)
         private set
@@ -89,8 +89,8 @@ class ArticlesViewModel(
                     updateResults(articleList, startTime)
                 }
 
-                NON_CANCELABLE -> {
-                    val articleList = loadArticlesNonCancelable(service)
+                NON_CANCELLABLE -> {
+                    val articleList = loadArticlesNonCancellable(service)
                     updateResults(articleList, startTime)
                 }
 
@@ -148,7 +148,7 @@ class ArticlesViewModel(
 
     fun cancelLoading() {
         loadingJob?.cancel()
-        loadingStatus = CANCELED
+        loadingStatus = CANCELLED
         newLoadingEnabled = true
         cancellationEnabled = false
         currentLoadingTimeMillis = 0
