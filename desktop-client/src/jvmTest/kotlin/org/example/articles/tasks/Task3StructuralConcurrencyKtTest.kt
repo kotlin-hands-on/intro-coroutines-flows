@@ -15,12 +15,12 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalCoroutinesApi::class)
 class Task3StructuralConcurrencyKtTest {
     @Test
-    fun `test loadArticlesNonCancelable Result`() = runTest {
-        val result = loadArticlesNonCancelable(MockBlogService)
+    fun `test loadArticlesNonCancellable Result`() = runTest {
+        val result = loadArticlesNonCancellable(MockBlogService)
         assertEquals(
             expected = ArticlesFakeDataResults.expectedConcurrentList.list,
             actual = result,
-            message = "Wrong result for 'loadArticlesNonCancelable'"
+            message = "Wrong result for 'loadArticlesNonCancellable'"
         )
     }
 

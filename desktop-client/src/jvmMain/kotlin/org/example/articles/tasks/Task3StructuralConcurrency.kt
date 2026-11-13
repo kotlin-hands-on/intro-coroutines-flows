@@ -7,6 +7,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 
 // Run both versions and try to cancel
-suspend fun loadArticlesNonCancelable(service: BlogService): List<Article> {
+suspend fun loadArticlesNonCancellable(service: BlogService): List<Article> {
     TODO()
 }
