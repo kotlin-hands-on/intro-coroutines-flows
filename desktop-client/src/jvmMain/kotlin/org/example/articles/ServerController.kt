@@ -11,6 +11,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.milliseconds
 
 class ServerController {
     private var server: WorkshopServer? = null
@@ -46,7 +47,7 @@ class ServerController {
                 if (isReady) {
                     return
                 }
-                delay(250)
+                delay(250.milliseconds)
                 if (attempt == 39) {
                     error("Workshop server did not become ready on $WORKSHOP_SERVER_URL")
                 }
