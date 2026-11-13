@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class Task3StructuralConcurrencyKtTest {
+class Task3StructuredConcurrencyKtTest {
     @Test
     fun `test loadArticlesNonCancellable Result`() = runTest {
         val result = loadArticlesNonCancellable(MockBlogService)
