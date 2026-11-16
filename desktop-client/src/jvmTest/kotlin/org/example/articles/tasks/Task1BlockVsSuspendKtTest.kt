@@ -2,15 +2,11 @@ package org.example.articles.tasks
 
 import org.example.articles.data.ArticlesFakeDataResults
 import org.example.articles.data.MockBlogService
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.measureTime
-import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class Task1BlockVsSuspendKtTest {
     @Test
     fun `test loadArticles Result`() = runTest {

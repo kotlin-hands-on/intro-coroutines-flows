@@ -3,13 +3,12 @@ package org.example.articles.data
 import org.example.articles.model.Article
 import org.example.data.ArticlesFakeData
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 data class TestResults(val duration: Duration, val list: List<Article>)
 object ArticlesFakeDataResults {
     private fun sequentialDuration() =
         ArticlesFakeData.getArticles()
-            .sumOf { articleInfo -> ArticlesFakeData.getDelay(articleInfo.id).inWholeMilliseconds }.milliseconds
+            .fold(Duration.ZERO) { total, articleInfo -> total + ArticlesFakeData.getDelay(articleInfo.id) }
 
     private fun concurrentDuration() =
         ArticlesFakeData.getArticles()
