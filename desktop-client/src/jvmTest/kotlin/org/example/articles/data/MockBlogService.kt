@@ -6,7 +6,6 @@ import org.example.blog.ArticleInfo
 import org.example.data.ArticlesFakeData
 import org.example.blog.Comment
 import kotlinx.coroutines.delay
-import kotlin.random.Random
 
 object MockBlogService: BlogService {
     override suspend fun getArticleInfoList(): List<ArticleInfo> {
@@ -19,10 +18,24 @@ object MockBlogService: BlogService {
         return ArticlesFakeData.getComments(id)
     }
 
+    override suspend fun getArticleInfoListUnstable(): List<ArticleInfo> = getArticleInfoList()
+
     override suspend fun getCommentsUnstable(articleInfo: ArticleInfo): List<Comment> {
-        if (Random.nextDouble() < 0.5) {
-            throw NetworkException("Network error")
-        }
         return getComments(articleInfo)
+    }
+}
+
+class UnstableMockBlogService(
+    private val failingArticleIds: Set<Int> = emptySet(),
+    private val failArticleList: Boolean = false,
+) : BlogService by MockBlogService {
+    override suspend fun getArticleInfoListUnstable(): List<ArticleInfo> {
+        if (failArticleList) throw NetworkException("Network error")
+        return MockBlogService.getArticleInfoListUnstable()
+    }
+
+    override suspend fun getCommentsUnstable(articleInfo: ArticleInfo): List<Comment> {
+        if (articleInfo.id in failingArticleIds) throw NetworkException("Network error")
+        return MockBlogService.getCommentsUnstable(articleInfo)
     }
 }

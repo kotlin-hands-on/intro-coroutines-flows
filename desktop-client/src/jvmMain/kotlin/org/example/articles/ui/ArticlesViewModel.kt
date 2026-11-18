@@ -29,8 +29,8 @@ class ArticlesViewModel(
     }
 
     // Task: Use SupervisorJob for the dedicated loadingScope.
-    // Replace Job(...) with SupervisorJob(...) so a failed loading attempt in LoadingMode.UNSTABLE_NETWORK
-    // doesn't permanently cancel the loadingScope and break later loading attempts.
+    // Replace Job(...) with SupervisorJob(...) so a failed unstable-network load, such as loading the
+    // article list, doesn't permanently cancel the loadingScope and break later loading attempts.
     // initial code: Job(viewModelScope.coroutineContext.job)
     private val loadingScope =
         CoroutineScope(Job(viewModelScope.coroutineContext.job) + Dispatchers.Main)
@@ -42,7 +42,7 @@ class ArticlesViewModel(
         this.loadingMode = loadingMode
     }
 
-    enum class LoadingStatus { NOT_STARTED, IN_PROGRESS, COMPLETED, CANCELED, FAILED }
+    enum class LoadingStatus { NOT_STARTED, IN_PROGRESS, COMPLETED, COMPLETED_WITH_ERRORS, CANCELED, FAILED }
 
     var loadingStatus by mutableStateOf(NOT_STARTED)
         private set
@@ -59,6 +59,9 @@ class ArticlesViewModel(
     private var loadingJob by mutableStateOf<Job?>(null)
 
     val articlesFlow: StateFlow<List<Article>>
+        field = MutableStateFlow(listOf())
+
+    val failuresFlow: StateFlow<List<String>>
         field = MutableStateFlow(listOf())
 
     init {
@@ -108,8 +111,8 @@ class ArticlesViewModel(
                 }
 
                 UNSTABLE_NETWORK -> {
-                    val articles = observeArticlesUnstable(service)
-                    updateResultsWithProgress(articles, startTime)
+                    val articleResults = observeArticlesUnstable(service)
+                    updateResultsWithFailures(articleResults, startTime)
                 }
             }
         }
@@ -131,18 +134,48 @@ class ArticlesViewModel(
     private suspend fun updateResultsWithProgress(
         articleFlow: Flow<Article>,
         startTime: TimeMark,
+        completion: (Throwable?) -> Unit = ::markLoadingCompletion,
     ) {
         articleFlow
             .runningFold(listOf<Article>()) { list, article -> list + article }
             .onEach { updateResults(it, startTime, completed = false) }
-            .onCompletion { markLoadingCompletion(it) }
+            .onCompletion { completion(it) }
             .collect()
     }
+
+    private suspend fun updateResultsWithFailures(
+        articleResultFlow: Flow<ArticleResult>,
+        startTime: TimeMark,
+    ) {
+        val failures = mutableListOf<String>()
+        val articleFlow = articleResultFlow
+            .onEach { result ->
+                if (result is ArticleResult.Failure) {
+                    failures += "Getting comments for ${result.articleInfo.id} failed: ${result.exception.abbreviatedReason()}"
+                    failuresFlow.value = failures.toList()
+                }
+            }
+            .filterIsInstance<ArticleResult.Success>()
+            .map { it.article }
+
+        updateResultsWithProgress(articleFlow, startTime) { throwable ->
+            currentLoadingTime = startTime.elapsedNow()
+            if (throwable != null && throwable !is CancellationException) {
+                failures += "Loading failed: ${throwable.abbreviatedReason()}"
+                failuresFlow.value = failures.toList()
+            }
+            markLoadingCompletion(throwable)
+        }
+    }
+
+    private fun Throwable.abbreviatedReason(): String =
+        message?.lineSequence()?.firstOrNull()?.take(80) ?: this::class.simpleName.orEmpty()
 
     private fun markLoadingCompletion(throwable: Throwable? = null) {
         loadingStatus = when {
             throwable is CancellationException -> CANCELED
             throwable != null -> FAILED
+            loadingMode == UNSTABLE_NETWORK && failuresFlow.value.isNotEmpty() -> COMPLETED_WITH_ERRORS
             else -> COMPLETED
         }
         newLoadingEnabled = true
@@ -159,6 +192,7 @@ class ArticlesViewModel(
 
     private fun clearResults() {
         articlesFlow.value = listOf()
+        failuresFlow.value = listOf()
         loadingStatus = IN_PROGRESS
         newLoadingEnabled = false
         cancellationEnabled = false

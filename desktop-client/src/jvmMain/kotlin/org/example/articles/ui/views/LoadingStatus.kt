@@ -43,6 +43,7 @@ fun LoadingStatus(
                                 when (loadingStatus) {
                                     NOT_STARTED -> "not started"
                                     COMPLETED -> "completed in $timeText"
+                                    COMPLETED_WITH_ERRORS -> "completed with errors in $timeText"
                                     IN_PROGRESS -> "in progress $timeText"
                                     CANCELED -> "canceled"
                                     FAILED -> "failed"
@@ -62,7 +63,7 @@ fun LoadingStatus(
                     when (loadingStatus) {
                         NOT_STARTED, FAILED -> CircularProgressIndicator(0.0f)
                         IN_PROGRESS -> CircularProgressIndicator()
-                        COMPLETED -> CircularProgressIndicator(1.0f)
+                        COMPLETED, COMPLETED_WITH_ERRORS -> CircularProgressIndicator(1.0f)
                         CANCELED -> CircularProgressIndicator(0.3f)
                     }
                 }

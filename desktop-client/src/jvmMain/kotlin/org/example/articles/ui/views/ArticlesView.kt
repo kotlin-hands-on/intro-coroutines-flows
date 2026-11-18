@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.example.articles.model.Article
 import org.example.articles.ui.ArticlesViewModel
+import org.example.articles.ui.LoadingMode.UNSTABLE_NETWORK
 import org.example.blog.User
 
 @Composable
@@ -39,6 +41,19 @@ fun ArticlesView(viewModel: ArticlesViewModel) {
             loadingStatus = viewModel.loadingStatus,
             currentLoadingTime = viewModel.currentLoadingTime,
         )
+        if (viewModel.loadingMode == UNSTABLE_NETWORK) {
+            val failureLines = viewModel.failuresFlow.collectAsState(listOf()).value
+            if (failureLines.isNotEmpty()) {
+                Card(Modifier.padding(horizontal = 20.dp).fillMaxWidth()) {
+                    Text(
+                        text = failureLines.joinToString("\n"),
+                        modifier = Modifier.padding(15.dp),
+                        color = Color.Red,
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
+            }
+        }
 //        ActiveUsersView(
 //            activeUsers = viewModel.activeUsers.collectAsState(setOf()).value
 //        )
